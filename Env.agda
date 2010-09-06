@@ -7,15 +7,6 @@ open import Data.Vec
 
 infixr 5 _∷_
 
-data ElemIs {A : Set} : {n : ℕ} → Fin n → A → Vec A n → Set where
-  here : ∀ {x n} {xs : Vec A n} → ElemIs zero x (x ∷ xs)
-  there : ∀ {x y n} {xs : Vec A n} {i : Fin n} →
-          ElemIs i x xs → ElemIs (suc i) x (y ∷ xs)
-
-update-Vec : ∀ {A n} → Fin n → A → Vec A n → Vec A n
-update-Vec zero y (x ∷ xs) = y ∷ xs
-update-Vec (suc i) y (x ∷ xs) = x ∷ update-Vec i y xs
-
 data Env {R : Set} (El-R : R → Set) : ∀ {n} (xs : Vec R n) → Set where
   [] : Env El-R []
   _∷_ : ∀ {x n} {xs : Vec R n} (res : El-R x) → Env El-R xs → Env El-R (x ∷ xs)
@@ -59,7 +50,7 @@ homo-update-Env (_ ∷ xs) zero y = y ∷ xs
 homo-update-Env (x ∷ xs) (suc i) y = x ∷ homo-update-Env xs i y
 
 update-Env : {n : ℕ} {R : Set} {El-R : R → Set} {new : R} {xs : Vec R n} →
-  Env El-R xs → (i : Fin n) → El-R new → Env El-R (update-Vec i new xs)
+  Env El-R xs → (i : Fin n) → El-R new → Env El-R (xs [ i ]≔ new)
 update-Env [] () y
 update-Env (_ ∷ xs) zero y = y ∷ xs
 update-Env (x ∷ xs) (suc i) y = x ∷ update-Env xs i y

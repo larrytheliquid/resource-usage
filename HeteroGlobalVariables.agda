@@ -1,4 +1,4 @@
-module HomoGlobalVariables where
+module HeteroGlobalVariables where
 open import IO
 open import Coinduction
 open import Data.Unit
@@ -29,8 +29,8 @@ data Lang : {n n' : ℕ} → Vec Simple-Ty n → Vec Simple-Ty n' → Ty → Set
 
   GET : {n : ℕ} {ts : Vec Simple-Ty n}
         (i : Fin n) → Lang ts ts (Ty-S (lookup i ts))
-  SET : ∀ {n} {ts : Vec Simple-Ty n} 
-        (i : Fin n) → El-Simple (lookup i ts) → Lang ts ts Ty-Unit
+  SET : ∀ {simp n} {ts : Vec Simple-Ty n}
+        (i : Fin n) → El-Simple simp → Lang ts (ts [ i ]≔ simp) Ty-Unit
 
 mutual
   interp-BIND : ∀ {A B n n'} {ts : Vec Simple-Ty n} {ts' : Vec Simple-Ty n'} →
@@ -50,4 +50,4 @@ mutual
   interp env (GET i) =
     return (env , lookup-Env i env)
   interp env (SET i val) =
-    return (homo-update-Env env i val , tt)
+    return (update-Env env i val , tt)
