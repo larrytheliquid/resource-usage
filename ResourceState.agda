@@ -29,15 +29,25 @@ data Lang : {n n' : ℕ} → Vec Simple-Ty n → Vec Simple-Ty n' → Ty → Set
 
   GET : {n : ℕ} {ts : Vec Simple-Ty n}
         (i : Fin n) → Lang ts ts (Ty-S (lookup i ts))
-  SET : ∀ {T n} {ts : Vec Simple-Ty n} 
-        (i : Fin n) → El-Simple T → ElemIs i T ts → Lang {n} {n} ts ts Ty-Unit
+  SET : ∀ {n} {ts : Vec Simple-Ty n} 
+        (i : Fin n) → El-Simple (lookup i ts) → ElemIs i (lookup i ts) ts → Lang ts ts Ty-Unit
 
-interp : ∀ {T n n'} {ts : Vec Simple-Ty n} {ts' : Vec Simple-Ty n'} →
-         S-Env ts → Lang ts ts' T → IO (S-Env ts' × El-Ty T)
-interp env (ACTION io) =
-  ♯₁ io >>
-  ♯₁ return (env , tt)
-interp env (RETURN x) = return (env , x)
-interp env (BIND y y') = {!!}
-interp env (GET i) = {!!}
-interp env (SET i y y') = {!!}
+mutual
+  interp-BIND : ∀ {A B n n'} {ts : Vec Simple-Ty n} {ts' : Vec Simple-Ty n'} →
+                S-Env ts × A → (A → Lang ts ts' B) →
+                IO (S-Env ts' × El-Ty B)
+  interp-BIND (env , val) f = interp env (f val)
+
+  interp : ∀ {T n n'} {ts : Vec Simple-Ty n} {ts' : Vec Simple-Ty n'} →
+           S-Env ts → Lang ts ts' T → IO (S-Env ts' × El-Ty T)
+  interp env (ACTION io) =
+    ♯₁ io >>
+    ♯₁ return (env , tt)
+  interp env (RETURN val) = return (env , val)
+  interp env (BIND prog f) =
+    ♯₁ interp env prog >>= λ ans →
+    ♯₁ interp-BIND ans f
+  interp env (GET i) =
+    return (env , lookup-Env i env)
+  interp env (SET i val _) =
+    return (homo-update-Env env i val , tt)
