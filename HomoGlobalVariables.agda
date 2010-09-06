@@ -1,7 +1,7 @@
 open import Data.Nat
 open import Data.Vec hiding (_>>=_)
 open import Env
-module ResourceState where
+module HomoGlobalVariables where
 open import IO
 open import Coinduction
 open import Data.Unit
